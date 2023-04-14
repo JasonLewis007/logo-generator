@@ -55,4 +55,13 @@ inquirer
         }},
 
     ])
+//method to call back answers
+    .then((answers) => {
+        console.log(answers);
+        const logo = createShape(answers);
+//write prompt to file
+        fs.writeFile("logo.svg", generateSVG(logo), (err) =>
+            err ? console.error(err) : console.log('Successfully generated logo.svg'));
+    })
+    .catch((err) => console.log(err));
 
