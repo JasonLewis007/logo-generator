@@ -1,8 +1,8 @@
 //declare constant variables
 const fs = require("fs");
 const inquirer = require("inquirer");
-const color = require("color");
-const {createShape} = require("create");
+//const color = require("color");
+const {createShape} = require("createShape");
 const {generateSVG} = require("generateSVG");
 //inquirer prompts
 inquirer
