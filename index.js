@@ -1,67 +1,91 @@
-//declare constant variables
-const fs = require("fs");
-const inquirer = require("inquirer");
-//const color = require("color");
-const {createShape} = require("createShape");
-const {generateSVG} = require("generateSVG");
-//inquirer prompts
-inquirer
-//user choice logo letters
-    .prompt([
-        {
-            type: 'input',
-            name: 'logoLetters',
-            message: 'Please input up to 3 letters that you would like for your logo.',
-            validate: (input) => {
-                if(input.length > 0 && input.length <= 3){
-                    return true;
-                }else{
-                    console.log('Please input atleast 3 characters');
-                    return false;
-            };
-        }},
-        {
-//user choice shapes
-            type: 'list',
-            name: 'shapes',
-            message: 'What shape would you like for your logo to be?',
-            choices: ["circle", "triangle", "square"],
-        },
-        {
-//user choice text colors
-            type: 'input',
-            name: 'textColor',
-            message: 'What color would you like the text to be?  Please type in your color.',
-            validate: (input) => {
-                if(color){
-                    return true;
-            }else{
-                console.log('Pick another color.');
-                return false;
-            }
-        }},
-        {
-//user input shape colors
-            type: 'input',
-            name: 'shapeColor',
-            message: 'What color would you like your shape to be?  Please type the color.',
-            validate: (input) => {
-                if(color){
-                    return true;
-            }else{
-                console.log('Pick another color.');
-                return false;
-            }
-        }},
+const inquirer = require('inquirer');
+const fs = require('fs');
+const {Shape,Circle, Triangle, Square} = require('./lib/shapes');
 
-    ])
-//method to call back answers
-    .then((answers) => {
-        console.log(answers);
-        const logo = createShape(answers);
-//write prompt to file
-        fs.writeFile("logo.svg", generateSVG(logo), (err) =>
-            err ? console.error(err) : console.log('Successfully generated logo.svg'));
-    })
-    .catch((err) => console.log(err));
+class Svg {
+  constructor(){
+    this.textElement =''
+    this.shapeElement =''
+  }
+  render(){
+    return `version="1.1" width="300" height="200" xmlns="http://www.w3.org/2000/svg"`
+  }
+  setText(text,color){
+    this.textElement= ` <text x="150" y="125" font-size="60" text-anchor="middle" fill=${color}>${text}</text>`
+  }
+  setShapeElement(shape){
+    this.shapeElement = shape.render()
+  }
+}
+
+const questions = [
+  {
+    type: 'input',
+    name: 'text',
+    message: 'Enter up to three characters:',
+    validate: function (input) {
+      return input.length <= 3;
+    },
+  },
+  {
+    type: 'input',
+    name: 'textColor',
+    message: 'Enter text color (keyword or hexadecimal number):',
+  },
+  {
+    type: 'list',
+    name: 'shape',
+    message: 'Select a shape:',
+    choices: ['circle', 'triangle', 'square'],
+  },
+  {
+    type: 'input',
+    name: 'shapeColor',
+    message: 'Enter shape color (keyword or hexadecimal number):',
+  },
+];
+
+
+function writeToFile(fileName, data) {
+  const folderPath = './examples/'
+  const svg = new Svg();
+  svg.setText(data.text, data.textColor);
+  
+  switch (data.shape) {
+    case 'circle':
+      svg.setShapeElement(new Circle(data.shapeColor));
+      break;
+    case 'triangle':
+      svg.setShapeElement(new Triangle(data.shapeColor));
+      break;
+    case 'square':
+      svg.setShapeElement(new Square(data.shapeColor));
+      break;
+    default:
+      console.error(`Invalid shape selected: ${data.shape}`);
+      return;
+  }
+  
+  const svgContent = `<svg ${svg.render()}>${svg.shapeElement}${svg.textElement}</svg>`;
+
+  
+  fs.writeFile(folderPath + fileName, svgContent, (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('Logo generated successfully!');
+    }
+  });
+};
+
+// TODO: Create a function to initialize app
+function init() {
+  inquirer.prompt(questions).then((answers) => {
+    console.log(answers);
+    writeToFile('logo.svg', answers);
+  });
+};
+
+// // Function call to initialize app
+init();
 
